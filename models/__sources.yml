@@ -1,0 +1,15 @@
+sources:
+  - name: thelook
+    schema: 
+    description: Sample e-commerce dataset
+    tables:
+      - name: events
+        description: Clickstream data from users' online sessions
+      - name: order_items
+        description: items in an order
+      - name: orders
+        description: orders, with one record per order
+      - name: products
+        description: product catalog
+      - name: users
+        description: customers
