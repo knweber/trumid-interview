@@ -24,4 +24,4 @@ The mart model in this project is customer_summary_daily -- an aggregated look a
 
 
 ## Architecture Diagram
-!(~/Desktop/trumid_arch.png)
+!(/Users/krisweber/Desktop/trumid_arch.png)
