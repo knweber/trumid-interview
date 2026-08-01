@@ -1,0 +1,22 @@
+models:
+  - name: int_event_sessions
+    description: aggregates events into one session, which gives us information about the user's journey as a whole
+    columns:
+      - name: session_id
+        data_tests: 
+          - not_null
+          - unique
+      - name: user_id
+      - name: created_at
+      - name: city
+      - name: state
+      - name: postal_code
+      - name: traffic_source
+      - name: first_uri
+      - name: first_event_type
+      - name: last_uri
+      - name: last_event_type
+      - name: session_starttime
+      - name: session_endtime
+      - name: session_duration
+  
