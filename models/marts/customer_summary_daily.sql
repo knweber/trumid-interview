@@ -3,7 +3,7 @@
 
 WITH users AS (
     SELECT 
-        id
+        id as user_id
         , first_name
         , last_name
         , email
@@ -44,29 +44,23 @@ WITH users AS (
 
 , order_revenue AS (
     SELECT 
-        o.order_id
-        , o.user_id
-        , o.created_at as order_date
-        , SUM(oi.sale_price) as order_total
+        o.user_id
+        , COUNT(DISTINCT o.order_id) as total_orders
+        , SUM(oi.sale_price) as total_revenue
     FROM orders o
     LEFT JOIN order_items oi
     ON o.order_id = oi.order_id
+    GROUP BY o.user_id
 )
 
 , sessions AS (
     SELECT 
-        session_id
-        , user_id
-        , session_endtime
-        , traffic_source
-        , first_uri
-        , first_event_type
-        , last_uri
-        , last_event_type
-        , session_duration
+        user_id
+        , COUNT(DISTINCT session_id) as total_sessions
+        , STRING_AGG(distinct(s.traffic_source), '|') WITHIN GROUP (ORDER BY s.traffic_source) AS session_traffic_sources -- list of the traffic sources of each session, will give an overview of how a user decided to initiate with our website, especially if they had multiple distinct sessions
     FROM {{ ref('int_event_sessions') }}
     WHERE CAST(session_endtime AS DATE) = current_date - 1
-    GROUP BY session_id
+    GROUP BY user_id
 )
 
 -- right now, this table produces one record per user per day, even if they didn't have a session or an order on that day. We can also tweak the logic to select from sessions instead of users -- this would give us only "active" users for the given day, and ignore users who had no activity
@@ -81,10 +75,10 @@ SELECT
     , u.postal_code
     , u.country
     , u.traffic_source -- tracking how the user was initially sourced; helpful if they are new users that created an account and an order on the same day
-    , COALESCE(COUNT(DISTINCT o.order_id), 0) AS total_orders
-    , COALESCE(SUM(o.order_total), 0) AS total_revenue
-    , COALESCE(COUNT(DISTINCT s.session_id), 0) AS total_sessions
-    , LISTAGG(distinct(s.traffic_source), '|') WITHIN GROUP (ORDER BY s.traffic_source) AS session_traffic_sources -- list of the traffic sources of each session, will give an overview of how a user decided to initiate with our website, especially if they had multiple distinct sessions
+    , COALESCE(o.total_orders, 0) AS total_orders
+    , COALESCE(o.total_revenue, 0) AS total_revenue
+    , COALESCE(s.total_sessions, 0) AS total_sessions
+    , s.session_traffic_sources
 FROM users u
 LEFT JOIN order_revenue o
     ON o.user_id = u.user_id
