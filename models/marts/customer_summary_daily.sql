@@ -1,5 +1,5 @@
 {{ config(materialized='table') }}
--- this table is loaded on a daily grain at 4am, due to the event_sessions model having a lookback window of 4 hours. This ensures that we capture all possible "started" sessions from the day before
+-- this table is loaded on a daily grain at 4am, due to the event_sessions model having a lookback window of 4 hours. This ensures that we capture all possible sessions from the day before
 
 WITH users AS (
     SELECT 
@@ -69,6 +69,7 @@ WITH users AS (
     GROUP BY session_id
 )
 
+-- right now, this table produces one record per user per day, even if they didn't have a session or an order on that day. We can also tweak the logic to select from sessions instead of users -- this would give us only "active" users for the given day, and ignore users who had no activity
 SELECT 
     u.user_id
     , u.email
@@ -80,14 +81,14 @@ SELECT
     , u.postal_code
     , u.country
     , u.traffic_source -- tracking how the user was initially sourced; helpful if they are new users that created an account and an order on the same day
-    , COUNT(DISTINCT o.order_id) AS total_orders
-    , SUM(o.order_total) AS total_revenue
-    , COUNT(DISTINCT s.session_id) AS total_sessions
+    , COALESCE(COUNT(DISTINCT o.order_id), 0) AS total_orders
+    , COALESCE(SUM(o.order_total), 0) AS total_revenue
+    , COALESCE(COUNT(DISTINCT s.session_id), 0) AS total_sessions
     , LISTAGG(distinct(s.traffic_source), '|') WITHIN GROUP (ORDER BY s.traffic_source) AS session_traffic_sources -- list of the traffic sources of each session, will give an overview of how a user decided to initiate with our website, especially if they had multiple distinct sessions
 FROM users u
 LEFT JOIN order_revenue o
     ON o.user_id = u.user_id
 LEFT JOIN sessions s
     ON s.user_id = u.user_id
-GROUP BY u.user_id
+GROUP BY u.user_id -- one row per user per day
 ;
