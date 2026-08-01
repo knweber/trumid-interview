@@ -19,3 +19,9 @@ The intermediate model in this project serves as the silver layer of our warehou
 The mart model in this project is customer_summary_daily -- an aggregated look at the behavior of a customer per day. I've currently designed it to be at the customer level, even if a customer does not have any events or purchases for that given day. If the Analytics team only wants active customers, then we can tweak the model to instead only publish records for customers who had an active session on the reporting day. I've also decided to only include metrics on created orders/actions, excluding returns and shipping metrics. This can be something we implement later, either in this table or a more specific customer action-based mart table.
 
 **Note:** this mart refreshes once a day, which means it does not make full use of the more frequent load cadence of the int_event_sessions model. This mart is thus better suited for downstream consumers that are reporting on daily numbers; for other consumers that want near-real-time analytics, we could create a second mart that focuses on sessions (as opposed to users), refreshing every 15 minutes along with the int_event_sessions model.
+
+## Validations
+
+
+## Architecture Diagram
+!(~/Desktop/trumid_arch.png)
