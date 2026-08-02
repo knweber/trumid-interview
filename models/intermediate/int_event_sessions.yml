@@ -7,7 +7,11 @@ models:
           - not_null
           - unique
       - name: user_id
+        data_tests:
+          - not_null
       - name: created_at
+        data_tests:
+          - not_null
       - name: city
       - name: state
       - name: postal_code

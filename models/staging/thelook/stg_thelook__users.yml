@@ -1,0 +1,25 @@
+models:
+  - name: stg_thelook__users
+    description: stage model for users
+    columns:
+      - name: id
+        data_tests: 
+          - not_null
+          - unique
+      - name: first_name
+      - name: last_name
+      - name: email
+      - name: age
+      - name: gender
+      - name: state
+      - name: street_address
+      - name: postal_code
+      - name: city
+      - name: country
+      - name: latitude
+      - name: longitude
+      - name: traffic_source
+      - name: created_at
+        data_tests:
+          - not_null
+      - name: user_geom

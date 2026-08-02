@@ -1,0 +1,30 @@
+models:
+  - name: stg_thelook__order_items
+    description: stage model for order items data
+    columns:
+      - name: id
+        data_tests: 
+          - not_null
+          - unique
+      - name: order_id
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('stg_thelook__orders')
+              field: id
+      - name: user_id
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('stg_thelook__users')
+              field: id
+      - name: inventory_item_id
+        data_tests:
+          - not_null
+      - name: created_at
+        data_tests:
+          - not_null
+      - name: shipped_at
+      - name: delivered_at
+      - name: returned_at
+      - name: sale_price

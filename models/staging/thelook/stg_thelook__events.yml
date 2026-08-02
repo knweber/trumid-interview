@@ -1,0 +1,31 @@
+models:
+  - name: stg_thelook__events
+    description: stage model for events data
+    columns:
+      - name: id
+        data_tests: 
+          - not_null
+          - unique
+      - name: user_id
+        data_tests:
+          - not_null
+          - relationships:
+              to: ref('stg_thelook__users')
+              field: id
+      - name: sequence_number
+        data_tests:
+          - not_null
+      - name: session_id
+        data_tests:
+          - not_null
+      - name: created_at
+        data_tests:
+          - not_null
+      - name: ip_address
+      - name: city
+      - name: state
+      - name: postal_code
+      - name: browder
+      - name: traffic_source
+      - name: uri
+      - name: event_type

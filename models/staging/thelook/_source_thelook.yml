@@ -9,7 +9,5 @@ sources:
         description: items in an order
       - name: orders
         description: orders, with one record per order
-      - name: products
-        description: product catalog
       - name: users
         description: customers
