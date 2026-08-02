@@ -90,4 +90,3 @@ LEFT JOIN order_revenue o
 LEFT JOIN sessions s
     ON s.user_id = u.user_id
 GROUP BY o.order_date, u.user_id -- one row per user per day
-;
