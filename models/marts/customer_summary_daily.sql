@@ -58,7 +58,8 @@ WITH users AS (
 , sessions AS (
     SELECT 
         user_id
-        , COUNT(DISTINCT session_id) as total_sessions
+        , COUNT(DISTINCT session_id) AS total_sessions
+        , SUM(session_duration) AS total_session_time
         , STRING_AGG(distinct(s.traffic_source), '|') WITHIN GROUP (ORDER BY s.traffic_source) AS session_traffic_sources -- list of the traffic sources of each session, will give an overview of how a user decided to initiate with our website, especially if they had multiple distinct sessions; we can turn this into a nested data type later if we want to be able to more easily access each source for analytics 
     FROM {{ ref('int_event_sessions') }}
     WHERE CAST(session_endtime AS DATE) = current_date - 1
@@ -81,6 +82,7 @@ SELECT
     , COALESCE(o.total_orders, 0) AS total_orders
     , COALESCE(o.total_revenue, 0) AS total_revenue
     , COALESCE(s.total_sessions, 0) AS total_sessions
+    , COALESCE(s.total_session_time, 0) AS total_session_time
     , s.session_traffic_sources
 FROM users u
 LEFT JOIN order_revenue o

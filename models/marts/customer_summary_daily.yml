@@ -20,4 +20,5 @@ models:
       - name: total_orders
       - name: total_revenue
       - name: total_sessions
+      - name: total_session_time
       - name: session_traffic_sources
