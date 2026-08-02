@@ -3,7 +3,12 @@
 This repo utilizes four of the tables included in the thelook_ecommerce dataset -- events, order items, orders, and users -- to create an analytics-ready mart table summarizing customer activity and revenue by day.
 
 ## Business Value
-BIZ VALUE/USE CASES HERE
+This model is designed to provide stakeholders with a once-daily report of customer activity, and can be built upon in the future to provide a near-real-time dataset of user behavior on our website.
+The questions our current model can answer:
+- How many customers were "active" (visited our website or made an order) on a given day? How many of these active customers actually made a purchases, versus just navigating on our website?
+- For the active customers, how much time was spent on our website, and what was the initial source that brought them to our website (e.g. social media ad, email)?
+- How much revenue did the active customers bring in? And what was the average revenue by order?
+- Is there any correlation between geographic location and customer activity? If we were running ads in local markets, this could give us data on conversion rates
 
 ## Models
 
@@ -21,6 +26,7 @@ The mart model in this project is customer_summary_daily -- an aggregated look a
 **Note:** this mart refreshes once a day, which means it does not make full use of the more frequent load cadence of the int_event_sessions model. This mart is thus better suited for downstream consumers that are reporting on daily numbers; for other consumers that want near-real-time analytics, we could create a second mart that focuses on sessions (as opposed to users), refreshing every 15 minutes along with the int_event_sessions model.
 
 ## Validations
+I've included 
 
 
 ## Architecture Diagram
