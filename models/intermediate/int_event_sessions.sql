@@ -1,11 +1,11 @@
 {{ config(
     materialized='incremental',
-    unique_key='session_id',
+    unique_key=['session_id','id'],
     incremental_strategy='merge'
 ) }}
 -- incremental materialization so as to not do a full refresh of the table with each run, due to clickstream data being high volume
--- unique key is the ID of the session - we want to make sure we are not creating duplicate entries for one session. If a session had events after the last run, its values in the current table will be updated to reflect this
-    -- another thing to keep in mind is that some streaming sources operate under an at-least-once delivery guarantee, meaning that a unique event ID may come through more than once. If the team believes this will be an issue with our streaming source, then we can also add de-dup logic on session_id + event id
+-- unique key is the ID of the session + ID of the event - we want to make sure we are not creating duplicate entries for one session or a specific event within a session. If a session had events after the last run, its values in the current table will be updated to reflect this
+    -- regarding the event ID: one thing to keep in mind is that some streaming sources operate under an at-least-once delivery guarantee, meaning that a unique event ID may come through more than once. As a result, we want to make sure that we only ingest this event ID once
 -- technically, on_schema_change configuration is not needed because the stg_thelook__event model is only selecting certain columns (instead of SELECT *), which eliminates the possibility of new columns being passed through. We could still include it if we want to account for column data type changes.
 
 
@@ -13,6 +13,7 @@
 WITH events_in_window AS (
     SELECT 
         session_id
+        , id
         , sequence_number
         , user_id
         , created_at
