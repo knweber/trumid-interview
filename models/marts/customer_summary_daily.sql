@@ -42,15 +42,17 @@ WITH users AS (
     WHERE CAST(created_at AS DATE) = current_date - 1
 )
 
+-- revenue per user per day
 , order_revenue AS (
     SELECT 
         o.user_id
+        , CAST(o.created_at AS DATE) as order_date
         , COUNT(DISTINCT o.order_id) as total_orders
         , SUM(oi.sale_price) as total_revenue
     FROM orders o
     LEFT JOIN order_items oi
     ON o.order_id = oi.order_id
-    GROUP BY o.user_id
+    GROUP BY o.user_id, CAST(o.created_at AS DATE)
 )
 
 , sessions AS (
@@ -65,7 +67,8 @@ WITH users AS (
 
 -- right now, this table produces one record per user per day, even if they didn't have a session or an order on that day. We can also tweak the logic to select from sessions instead of users -- this would give us only "active" users for the given day, and ignore users who had no activity
 SELECT 
-    u.user_id
+    o.order_date
+    , u.user_id
     , u.email
     , u.age
     , u.gender
@@ -84,5 +87,5 @@ LEFT JOIN order_revenue o
     ON o.user_id = u.user_id
 LEFT JOIN sessions s
     ON s.user_id = u.user_id
-GROUP BY u.user_id -- one row per user per day
+GROUP BY o.order_date, u.user_id -- one row per user per day
 ;

@@ -1,0 +1,23 @@
+models:
+  - name: customer_summary_daily
+    description: model measuring customer activity and revenue by day; includes both active and inactive customers
+    columns:
+      - name: order_date
+        data_tests: 
+          - not_null
+      - name: user_id
+        data_tests:
+          - not_null
+      - name: email
+      - name: age
+      - name: gender
+      - name: street_address
+      - name: city
+      - name: state
+      - name: postal_code
+      - name: country
+      - name: traffic_source
+      - name: total_orders
+      - name: total_revenue
+      - name: total_sessions
+      - name: session_traffic_sources
