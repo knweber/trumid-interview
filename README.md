@@ -43,3 +43,6 @@ To build a more robust monitoring framework, we will leverage quality checks acr
 ## Architecture Diagram
 <img width="390" height="503" alt="trumid_arch" src="https://github.com/user-attachments/assets/3d73cd3a-104b-4158-bdfa-6ebd92f77e98" />
 
+
+## AI Tools
+I used Google to refresh my memory on some of the dbt configuration syntax and values, and checked my code for int_event_sessions in Claude to make sure I had structured the merge + lookback window logic correctly. 
