@@ -17,6 +17,12 @@ The staging models in this project serve as the bronze-layer of our warehouse --
 
 In my specific example, I am assuming that the orders, order items, and users tables refresh once daily via batching, while the events table comes from a streaming and/or microbatching source. The cadence of dbt runs should be once daily for orders, order items, and users, and every 15 minutes for events. The final mart table will follow the once-daily cadence of the four batch tables.
 
+The grain for each of these stage tables is as follows:
+- events: one record per event within a session
+- orders: one record per order
+- order_items: one record per item in a given order
+- users: one record per user
+
 ### Intermediate
 The intermediate model in this project serves as the silver layer of our warehouse -- the layer of data after the bronze layer, where the majority of the joins, transformations, and business logic are implemented. I have one intermediate model here, int_event_sessions. The model takes the streaming events data and publishes it at the session level. Looking at events in aggregate typically provides more "meaning" and context than an isolated event, and rolling the events up into their respective sessions also allows for more meaningful joins further downstream. This intermediate model with session-level data will be fed into our final mart table, joining with customer and order information to provide a daily snapshot of customer activity. 
 
@@ -29,9 +35,9 @@ The mart model in this project serves as the gold layer of our warehouse -- the 
 I've included basic built-in dbt tests across all models, primarily not_null and unique checks on the most important identifying/ID columns and join keys. In order to ensure that our upstream sources are not missing data/affected by a source system outage, I've also added referential checks on columns like user_id and order_id. If our order table contains user ID's that do not have a match in the user table, then we will know that the user source system has most likely had an incomplete load.
 
 To build a more robust monitoring framework, we will leverage quality checks across both dbt and Airflow, which can include: 
-    - Freshness: for our batch tables (orders, order items, users), we can make use of Fivetran's built-in `_fivetran_synced` column (which does not currently exist in the source BQ tables). If the sync timestamp of our ingested records violates our freshness SLA (i.e., if the sync timestamp is older than 24 hours), we will be alerted and can assume that there's been a lag in the refresh of our upstream tables.
-    - Row count monitoring: if we suddenly receive a load of orders that's 25% lower than the average across the past 7 days, that can indicate that only a partial load occurred. 
-    - Schema changes: we want to capture any schema changes made to upstream models, including the addition of new columns, the deletion of existing columns, and any changes made to a column's data type. Dbt offers several types of configurations to handle schema changes; in order to adhere to standard data governance principles, in which a table's definition is standardized and all metadata changes are tracked, I would set this configuration to fail upon encountering any schema changes. This will ensure that we are aligned with the upstream teams who publish the data and allow us to make sure the actual data structure is in sync with our published definitions and lineage.
+- Freshness: for our batch tables (orders, order items, users), we can make use of Fivetran's built-in `_fivetran_synced` column (which does not currently exist in the source BQ tables). If the sync timestamp of our ingested records violates our freshness SLA (i.e., if the sync timestamp is older than 24 hours), we will be alerted and can assume that there's been a lag in the refresh of our upstream tables.
+- Row count monitoring: if we suddenly receive a load of orders that's 25% lower than the average across the past 7 days, that can indicate that only a partial load occurred. 
+- Schema changes: we want to capture any schema changes made to upstream models, including the addition of new columns, the deletion of existing columns, and any changes made to a column's data type. Dbt offers several types of configurations to handle schema changes; in order to adhere to standard data governance principles, in which a table's definition is standardized and all metadata changes are tracked, I would set this configuration to fail upon encountering any schema changes. This will ensure that we are aligned with the upstream teams who publish the data and allow us to make sure the actual data structure is in sync with our published definitions and lineage.
 
 
 ## Architecture Diagram
