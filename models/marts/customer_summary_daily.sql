@@ -1,7 +1,23 @@
-{{ config(materialized='table') }}
 -- this table is loaded on a daily grain at 4am, due to the event_sessions model having a lookback window of 4 hours. This ensures that we capture all possible sessions from the day before
+-- incremental table to include all history, and not just a full refresh to only capture CURRENT_DATE - 1; we want the grain to be one record per user ID per day
 
-WITH users AS (
+{{ config(
+    materialized='incremental',
+    unique_key=['user_id', 'order_date'],
+    incremental_strategy='merge'
+) }}
+
+-- grabbing the date of the batch to load -- either CURRENT_DATE - 1 in the daily pipeline, or a backfill range in the case of a full refresh. We want to decouple the date from the orders table to handle the cases in which a user did not make a purchase on that date, so we can still capture them
+WITH report_date AS (
+    SELECT
+        {% if is_incremental() %}
+            current_date - 1
+        {% else %}
+            CAST(created_at AS DATE)  -- in case a full refresh is needed
+        {% endif %} AS report_date
+)
+
+, users AS (
     SELECT 
         id as user_id
         , first_name
@@ -28,7 +44,7 @@ WITH users AS (
         , created_at
         , num_of_item
     FROM {{ ref('stg_thelook__orders' )}}
-    WHERE CAST(created_at AS DATE) = current_date - 1
+    WHERE CAST(created_at AS DATE) = (SELECT report_date FROM report_date)
     AND status = 'Processing'
 )
 
@@ -39,7 +55,7 @@ WITH users AS (
         , user_id
         , sale_price
     FROM {{ ref('stg_thelook__order_items') }}
-    WHERE CAST(created_at AS DATE) = current_date - 1
+    WHERE CAST(created_at AS DATE) = (SELECT report_date FROM report_date)
 )
 
 -- revenue per user per day
@@ -68,7 +84,7 @@ WITH users AS (
 
 -- right now, this table produces one record per user per day, even if they didn't have a session or an order on that day. We can also tweak the logic to select from sessions instead of users -- this would give us only "active" users for the given day, and ignore users who had no activity
 SELECT 
-    o.order_date
+    (SELECT report_date FROM report_date) as order_date
     , u.user_id
     , u.email
     , u.age
@@ -89,4 +105,4 @@ LEFT JOIN order_revenue o
     ON o.user_id = u.user_id
 LEFT JOIN sessions s
     ON s.user_id = u.user_id
-GROUP BY o.order_date, u.user_id -- one row per user per day
+GROUP BY u.user_id -- one row per user per day
