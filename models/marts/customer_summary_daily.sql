@@ -105,4 +105,4 @@ LEFT JOIN order_revenue o
     ON o.user_id = u.user_id
 LEFT JOIN sessions s
     ON s.user_id = u.user_id
-GROUP BY u.user_id -- one row per user per day
+GROUP BY u.user_id, (SELECT report_date FROM report_date) -- one row per user per day
